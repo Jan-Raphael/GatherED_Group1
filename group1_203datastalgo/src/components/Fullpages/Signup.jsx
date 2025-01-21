@@ -2,43 +2,43 @@ import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import Footer from "../Parts/Footer";
 import HeaderNonUser from "../Parts/Header";
-import { getUsers, addUser } from '../Data/accounts'
+import axios from "axios";
 
 function Signup() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [confirmedPass, setConfirmedPass] = useState("");
-  const [users, setUsers] = useState(getUsers());
+  const [users, setUsers] = useState([]);
 
-  function handleSignup(e) {
+  async function handleSignup(e) {
     e.preventDefault();
 
-    // Validate passwords match
     if (pass !== confirmedPass) {
       alert("Passwords do not match!");
       return;
     }
 
-    // Create a new user object
-    const newUser = {
-      id: Date.now(),
-      username,
-      email,
-      password: pass,
-    };
+    try {
+      // Send signup data to backend
+      const response = await axios.post("http://localhost:5000/api/signup", {
+        username,
+        email,
+        password: pass,
+      });
 
-    // Add the user to the file
-    addUser(newUser);
-
-    // Update local state
-    setUsers(getUsers());
-
-    // Clear the form
-    setUsername("");
-    setEmail("");
-    setPass("");
-    setConfirmedPass("");
+      if (response.status === 201) {
+        alert("Signup successful!");
+        setUsers([...users, response.data]); 
+        setUsername("");
+        setEmail("");
+        setPass("");
+        setConfirmedPass("");
+      }
+    } catch (error) {
+      console.error("Signup error:", error.response?.data || error.message);
+      alert("Signup failed. Please try again.");
+    }
   }
 
   return (
